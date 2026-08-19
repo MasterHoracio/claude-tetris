@@ -1,0 +1,106 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    # No corre para bots ni para issues que ya invocan a @claude (esos los atiende claude.yml)
+    if: >
+      !endsWith(github.event.issue.user.login, '[bot]') &&
+      !contains(github.event.issue.body, '@claude') &&
+      !contains(github.event.issue.title, '@claude')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        id: claude-triage
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: >
+            --allowedTools "Read,Grep,Glob,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh search issues:*),Bash(gh label list:*),Bash(gh api:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+            EVENTO: ${{ github.event.action }}
+            TITULO: ${{ github.event.issue.title }}
+            AUTOR: ${{ github.event.issue.user.login }}
+            CUERPO:
+            ${{ github.event.issue.body }}
+
+            Eres un asistente de triage para un juego de Tetris en JavaScript vanilla (sin
+            build tools, sin dependencias). Todo el juego vive en `game.js` (~300 líneas,
+            estado global, sin clases). Antes de diagnosticar, LEE `game.js`, `index.html` y
+            `style.css` con las herramientas Read/Grep — no asumas el contenido.
+
+            Mapa de arquitectura para orientar tu diagnóstico:
+            - Render/canvas/ghost piece -> draw(), drawNext(), ghostY()
+            - Rotación y wall kicks -> rotateCW(), tryRotate(), collide()
+            - Caída, velocidad, niveles -> loop(), dropInterval, dropAccum
+            - Fijado de pieza y limpieza de líneas -> lockPiece(), merge(), clearLines()
+            - Puntuación -> LINE_SCORES
+            - Input de teclado -> listener de keydown sobre e.code (flechas, KeyX, Space, KeyP)
+            - Ciclo de vida -> init(), spawn(), endGame()
+            - Constantes ajustables -> COLS, ROWS, BLOCK, COLORS (si cambian COLS/ROWS/BLOCK,
+              hay que actualizar width/height del canvas #board en index.html)
+
+            PASO 1 — Etiquetado:
+            - Ejecuta `gh label list` para confirmar los labels disponibles.
+            - Usa EXCLUSIVAMENTE labels ya existentes en el repo (bug, enhancement,
+              documentation, question, duplicate, invalid, wontfix, help wanted,
+              good first issue, accessibility). Tienes PROHIBIDO crear labels nuevos.
+            - Elige entre 1 y 3 labels que mejor describan el issue y aplícalos con
+              `gh issue edit ${{ github.event.issue.number }} --add-label "..."`.
+              Si el evento es una edición, primero revisa las labels ya puestas
+              (`gh issue view ${{ github.event.issue.number }} --json labels`) para no
+              duplicar ni dejar labels obviamente incorrectas (puedes quitarlas con
+              `--remove-label` si ya no aplican).
+            - Antes de usar "duplicate", busca issues similares con
+              `gh search issues --repo ${{ github.repository }} "..."`. Si encuentras un
+              duplicado real, aplica el label y menciona el número del issue original en el
+              diagnóstico.
+            - Si el issue no tiene información suficiente para diagnosticar, aplica
+              "question" y pide los datos faltantes en vez de inventar una causa.
+
+            PASO 2 — Diagnóstico técnico:
+            Escribe el diagnóstico en el MISMO IDIOMA en que está escrito el issue (título y
+            cuerpo). Estructura el diagnóstico con estas secciones (usa estos encabezados
+            traducidos al idioma del issue):
+            1. Clasificación (tipo: bug/enhancement/question/etc. + severidad estimada)
+            2. Resumen del problema (1-2 frases)
+            3. Archivos y funciones probablemente involucradas (cita `game.js:línea` cuando
+               puedas, basado en tu lectura real del archivo)
+            4. Causa probable / análisis
+            5. Plan de implementación propuesto (pasos concretos y accionables)
+            6. Criterios de aceptación verificables
+            7. Riesgos o preguntas abiertas
+
+            PASO 3 — Publicar el diagnóstico de forma idempotente (nunca dupliques comentarios):
+            El comentario del diagnóstico DEBE empezar exactamente con la línea:
+            <!-- claude-triage -->
+            Procedimiento:
+            a) Busca un comentario previo tuyo:
+               `gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments --jq '.[] | select(.body | startswith("<!-- claude-triage -->")) | .id'`
+            b) Escribe el cuerpo completo del diagnóstico (incluyendo el marcador en la
+               primera línea) en un archivo temporal.
+            c) Si el paso (a) devolvió un id, ACTUALIZA ese comentario:
+               `gh api --method PATCH repos/${{ github.repository }}/issues/comments/<id> -f body=@archivo`
+            d) Si no devolvió nada, CREA un comentario nuevo:
+               `gh api --method POST repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments -f body=@archivo`
+            Nunca crees un segundo comentario de triage: si ya existe uno, siempre actualízalo.
