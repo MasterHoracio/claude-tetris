@@ -43,6 +43,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Pieza reto "tuerca"**: una pieza de 3×3 con el centro hueco que aparece ocasionalmente (~10%) y deja un agujero en el tablero al bloquearse, dificultando el despeje de líneas.
+- **Tabla de records local**: guarda el top 5 de puntuaciones en `localStorage`. Al hacer Game Over con puntuación suficiente, pide tu nombre y lo añade a la tabla, resaltando la fila nueva. También lleva el mejor combo y el máximo de líneas eliminadas de un golpe (histórico), y permite borrar todos los records con un botón de reseteo.
 
 ---
 
@@ -98,8 +99,8 @@ El juego se compone de tres archivos que cooperan:
 Define la estructura visual:
 
 - Un `<canvas id="board">` de **300 × 600** píxeles donde se renderiza el tablero.
-- Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza y la lista de controles.
-- Un overlay para los estados **PAUSA** y **GAME OVER**.
+- Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza, la lista de controles y la sección `RECORDS` (top 5, mejor combo, máx. líneas y botón de reseteo).
+- Un overlay para los estados **PAUSA** y **GAME OVER**, que incluye el formulario para guardar el nombre cuando la puntuación entra en el top 5, y una copia de la tabla de records.
 
 ### 2. `style.css`
 
@@ -118,6 +119,7 @@ Contiene toda la lógica del juego. A grandes rasgos:
 - **Puntuación**: usa la tabla clásica `[0, 100, 300, 500, 800]` multiplicada por el nivel actual; el hard drop suma 2 puntos por celda recorrida y el soft drop 1 punto por fila.
 - **Nivel y velocidad**: el nivel sube cada 10 líneas; la velocidad de caída se calcula como `max(100, 1000 − (level − 1) × 90)` milisegundos.
 - **Ghost piece** (`ghostY`): proyecta la posición final de la pieza actual hacia abajo y la dibuja con `globalAlpha = 0.2`.
+- **Tabla de records** (`loadHighscores`/`saveHighscores`/`renderHighscores`): persiste en `localStorage['tetris-highscores']` un top 5 (`{name, score, lines, level, date}`) más `bestCombo` y `maxLines` históricos. Cada limpieza de líneas suma al combo actual (`combo`); si una pieza se bloquea sin limpiar línea, el combo se reinicia. Al perder, si la puntuación entra en el top 5 se muestra un input para el nombre (máx. 12 caracteres, "Anónimo" si queda vacío); el nuevo record se resalta con la clase `.highlight`. Un botón "Resetear records" borra la tabla tras confirmación.
 
 ### Flujo del juego
 
