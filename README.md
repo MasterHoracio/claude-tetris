@@ -43,6 +43,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Pieza reto "tuerca"**: una pieza de 3×3 con el centro hueco que aparece ocasionalmente (~10%) y deja un agujero en el tablero al bloquearse, dificultando el despeje de líneas.
+- **Selector de skins visuales**: 4 estilos de dibujo intercambiables en caliente (Retro, Neon, Pastel, Pixel Art), con persistencia en `localStorage`.
 
 ---
 
@@ -118,6 +119,11 @@ Contiene toda la lógica del juego. A grandes rasgos:
 - **Puntuación**: usa la tabla clásica `[0, 100, 300, 500, 800]` multiplicada por el nivel actual; el hard drop suma 2 puntos por celda recorrida y el soft drop 1 punto por fila.
 - **Nivel y velocidad**: el nivel sube cada 10 líneas; la velocidad de caída se calcula como `max(100, 1000 − (level − 1) × 90)` milisegundos.
 - **Ghost piece** (`ghostY`): proyecta la posición final de la pieza actual hacia abajo y la dibuja con `globalAlpha = 0.2`.
+- **Skins visuales** (`SKINS`, `drawBlock`): cada skin define su propia paleta de colores y su función de dibujo de bloque. `drawBlock` actúa como despachador único: resuelve la skin activa (`currentSkin`) y delega el pintado. El selector `#skin-select` en la cabecera cambia la skin en caliente (persistida en `localStorage` bajo `tetris-skin`) y redibuja el tablero y el `NEXT` de inmediato, incluso en pausa o game over.
+  - **Retro**: el estilo clásico original (cuadrado sólido + franja de brillo).
+  - **Neon**: paleta saturada con `shadowBlur`/`shadowColor` para efecto de resplandor; oscurece el fondo del tablero (clase `body.skin-neon`).
+  - **Pastel**: paleta de tonos suaves con esquinas redondeadas (`context.roundRect`, con fallback a `fillRect`).
+  - **Pixel Art**: paleta plana con una textura de sub-cuadrícula 3×3 dibujada encima para dar efecto pixelado.
 
 ### Flujo del juego
 
