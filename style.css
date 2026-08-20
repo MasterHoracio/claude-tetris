@@ -253,3 +253,161 @@ kbd {
 #restart-btn:hover {
   background: var(--btn-hover);
 }
+
+/* ---- Records ---- */
+:root {
+  --highlight-bg: rgba(122, 162, 247, 0.18);
+  --highlight-border: #7aa2f7;
+  --danger: #e57373;
+  --danger-hover: #ef9a9a;
+}
+
+body.light-theme {
+  --highlight-bg: rgba(63, 95, 191, 0.12);
+  --highlight-border: #3f5fbf;
+  --danger: #d64545;
+  --danger-hover: #e57373;
+}
+
+.panel-section.records {
+  gap: 8px;
+}
+
+.highscore-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  counter-reset: hs-counter;
+}
+
+.highscore-list li {
+  counter-increment: hs-counter;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--text-main);
+}
+
+.highscore-list li::before {
+  content: counter(hs-counter) '.';
+  color: var(--label-color);
+  margin-right: 4px;
+  font-weight: 700;
+}
+
+.highscore-list li.highlight {
+  background: var(--highlight-bg);
+  border: 1px solid var(--highlight-border);
+}
+
+.highscore-list .hs-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highscore-list .hs-score {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.highscore-empty {
+  font-size: 12px;
+  color: var(--controls-text);
+  padding: 3px 6px;
+}
+
+.highscore-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--controls-text);
+}
+
+.highscore-stats strong {
+  color: var(--accent);
+}
+
+#reset-scores-btn {
+  margin-top: 4px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#reset-scores-btn:hover {
+  background: var(--danger);
+  color: var(--btn-text);
+}
+
+/* ---- Guardar record en overlay ---- */
+.name-input-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.name-input-box.hidden {
+  display: none;
+}
+
+.name-input-label {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+#player-name-input {
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: center;
+  width: 160px;
+}
+
+#player-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+#save-score-btn {
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s;
+}
+
+#save-score-btn:hover {
+  background: var(--btn-hover);
+}
+
+.overlay-highscores {
+  width: 100%;
+  max-width: 220px;
+  margin-top: 4px;
+}
