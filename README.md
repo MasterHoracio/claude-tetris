@@ -41,6 +41,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Vista previa** de la siguiente pieza.
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
+- **Menú de pausa** con opciones para reanudar, reiniciar, ver la lista de controles y elegir el nivel inicial (se guarda en `localStorage`).
 - **Pausa** y **Game Over** con opción de reinicio.
 - **Pieza reto "tuerca"**: una pieza de 3×3 con el centro hueco que aparece ocasionalmente (~10%) y deja un agujero en el tablero al bloquearse, dificultando el despeje de líneas.
 
@@ -85,7 +86,9 @@ Después abre `http://localhost:8000` en el navegador.
 | `↑` o `X` | Rotar la pieza en sentido horario |
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Pausar / reanudar                |
+
+Al pausar se abre un **menú de pausa** con botones para reanudar, reiniciar, ver los controles y elegir el nivel inicial de la próxima partida. Con el menú abierto, `Esc` cierra primero la lista de controles (si está visible) y, si no, cierra el menú.
 
 ---
 
@@ -99,7 +102,7 @@ Define la estructura visual:
 
 - Un `<canvas id="board">` de **300 × 600** píxeles donde se renderiza el tablero.
 - Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza y la lista de controles.
-- Un overlay para los estados **PAUSA** y **GAME OVER**.
+- Un overlay para **GAME OVER** y otro independiente (`#pause-menu`) con el menú de pausa: reanudar, reiniciar, ver controles y selector de nivel inicial.
 
 ### 2. `style.css`
 
