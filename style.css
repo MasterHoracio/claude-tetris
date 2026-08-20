@@ -289,6 +289,10 @@ kbd {
   width: 100%;
 }
 
+#pause-controls.hidden {
+  display: none;
+}
+
 #pause-controls ul {
   list-style: none;
   display: flex;
